@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getNotesAPI, saveNoteAPI, deleteNoteAPI } from "../api"; // import centralized API
+import axios from "axios";
 
 const Dashboard = ({ user, onLogout }) => {
   const [notes, setNotes] = useState([]);
@@ -8,11 +8,16 @@ const Dashboard = ({ user, onLogout }) => {
   const [error, setError] = useState("");
   const [editingNote, setEditingNote] = useState(null);
 
+  const BASE_URL = import.meta.env.VITE_API_URL; // Vite env variable
+
+  // Set Axios Authorization header for the session
+  axios.defaults.headers.common["Authorization"] = `Bearer ${user.token}`;
+
   // Fetch notes
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const { data } = await getNotesAPI(user.token);
+        const { data } = await axios.get(`${BASE_URL}/notes`);
         setNotes(Array.isArray(data) ? data : data.notes || []);
       } catch (err) {
         console.error("Error fetching notes:", err);
@@ -26,24 +31,17 @@ const Dashboard = ({ user, onLogout }) => {
   const saveNote = async () => {
     if (!title.trim()) return;
     try {
-      const notePayload = { title, content };
-      const response = await saveNoteAPI({
-        token: user.token,
-        note: notePayload,
-        editingNoteId: editingNote?._id,
-      });
-
-      const savedNote = response.data;
-
       if (editingNote) {
-        setNotes((prev) =>
-          prev.map((note) => (note._id === savedNote._id ? savedNote : note))
-        );
+        const { data } = await axios.put(`${BASE_URL}/notes/${editingNote._id}`, {
+          title,
+          content,
+        });
+        setNotes((prev) => prev.map((note) => (note._id === data._id ? data : note)));
         setEditingNote(null);
       } else {
-        setNotes((prev) => [savedNote, ...prev]);
+        const { data } = await axios.post(`${BASE_URL}/notes`, { title, content });
+        setNotes((prev) => [data, ...prev]);
       }
-
       setTitle("");
       setContent("");
     } catch (err) {
@@ -62,7 +60,7 @@ const Dashboard = ({ user, onLogout }) => {
   // Delete note
   const deleteNote = async (id) => {
     try {
-      await deleteNoteAPI(id, user.token);
+      await axios.delete(`${BASE_URL}/notes/${id}`);
       setNotes((prev) => prev.filter((note) => note._id !== id));
     } catch (err) {
       console.error("Error deleting note:", err);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { signupUser, setAuthToken } from "../api"; // centralized API
+import axios from "axios";
 
 const Signup = ({ onSignup, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
@@ -9,15 +9,15 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
   });
   const [error, setError] = useState("");
 
+  const BASE_URL = import.meta.env.VITE_API_URL; // Vite env variable
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
@@ -25,19 +25,23 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     }
 
     try {
-      const response = await signupUser({
-        email: formData.email,
-        password: formData.password,
-      });
+      const response = await axios.post(
+        `${BASE_URL}/auth/signup`,
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
       const { token, user } = response.data;
+
+      // Set token for Axios (current session)
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       // Save token + user to localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-
-      // Set token for all future requests
-      setAuthToken(token);
 
       onSignup(user, token);
     } catch (err) {

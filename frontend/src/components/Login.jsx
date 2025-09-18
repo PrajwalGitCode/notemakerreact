@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { loginUser, setAuthToken } from "../api"; // import from your api.js
+import axios from "axios";
 
 const Login = ({ onLogin, onSwitchToSignup }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+
+  const BASE_URL = import.meta.env.VITE_API_URL; // Vite env variable
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -14,16 +16,20 @@ const Login = ({ onLogin, onSwitchToSignup }) => {
     setError("");
 
     try {
-      const response = await loginUser(formData);
+      const response = await axios.post(`${BASE_URL}/auth/login`, formData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      // Set token in axios default headers
-      setAuthToken(response.data.token);
+      const { token, user } = response.data;
+
+      // Set token in axios default headers for future requests in this session
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       // Save token + user to localStorage
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-      onLogin(response.data.user, response.data.token);
+      onLogin(user, token);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }
