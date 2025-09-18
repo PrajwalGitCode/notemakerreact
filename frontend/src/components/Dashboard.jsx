@@ -6,9 +6,9 @@ const Dashboard = ({ user, onLogout }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
-  const [editingNote, setEditingNote] = useState(null); 
+  const [editingNote, setEditingNote] = useState(null);
 
-  const API_URL = "http://localhost:5000/api/notes";
+  const API_URL = "https://notemakerreact.onrender.com";
 
   // Fetch notes
   useEffect(() => {
