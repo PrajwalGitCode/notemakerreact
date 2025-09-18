@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { signupUser, setAuthToken } from "./api"; // centralized API
+import { signupUser, setAuthToken } from "../api"; // centralized API
 
 const Signup = ({ onSignup, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({

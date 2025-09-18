@@ -1,34 +1,29 @@
 import React, { useState } from "react";
-import { loginUser, setAuthToken } from "./api"; // use centralized API
+import { loginUser, setAuthToken } from "../api"; // import from your api.js
 
 const Login = ({ onLogin, onSwitchToSignup }) => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      const response = await loginUser(formData); // use api.js
-      const { token, user } = response.data;
+      const response = await loginUser(formData);
+
+      // Set token in axios default headers
+      setAuthToken(response.data.token);
 
       // Save token + user to localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      // Set token for all future requests
-      setAuthToken(token);
-
-      onLogin(user, token);
+      onLogin(response.data.user, response.data.token);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }

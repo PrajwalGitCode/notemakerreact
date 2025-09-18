@@ -12,10 +12,10 @@ const app = express();
 
 
 app.use(cors({
-  origin: "https://stunning-bubblegum-e2eb39.netlify.app",
+  origin: "https://stunning-bubblegum-e2eb39.netlify.app, 'http://localhost:5173'",
   credentials: true,
 }));
-app.use(express.json()); 
+app.use(express.json());
 
 
 app.use("/api/auth", authRoutes);
@@ -23,7 +23,7 @@ app.use("/api/notes", noteRoutes);
 
 
 mongoose
-  .connect(process.env.MONGODB_URI) 
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error(" MongoDB connection error:", err));
 
