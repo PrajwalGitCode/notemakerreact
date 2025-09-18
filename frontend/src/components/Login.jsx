@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { loginUser, setAuthToken } from "./api"; // use centralized API
 
 const Login = ({ onLogin, onSwitchToSignup }) => {
   const [formData, setFormData] = useState({
@@ -18,18 +18,19 @@ const Login = ({ onLogin, onSwitchToSignup }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
+      const response = await loginUser(formData); // use api.js
+      const { token, user } = response.data;
 
-      // Save token + user to localStorage (persistent login)
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      // Save token + user to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-      onLogin(response.data.user, response.data.token);
-    } catch (error) {
-      setError(error.response?.data?.message || "Login failed");
+      // Set token for all future requests
+      setAuthToken(token);
+
+      onLogin(user, token);
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { signupUser, setAuthToken } from "./api"; // centralized API
 
 const Signup = ({ onSignup, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
@@ -19,25 +19,29 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate password match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        { email: formData.email, password: formData.password }
-      );
+      const response = await signupUser({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Save token + user to localStorage (persistent login)
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      const { token, user } = response.data;
 
-      onSignup(response.data.user, response.data.token);
-    } catch (error) {
-      setError(error.response?.data?.message || "Signup failed");
+      // Save token + user to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Set token for all future requests
+      setAuthToken(token);
+
+      onSignup(user, token);
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
     }
   };
 
