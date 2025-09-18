@@ -13,7 +13,7 @@ const app = express();
 
 app.use(cors({
   origin: [
-    "https://stunning-bubblegum-e2eb39.netlify.app",
+    "https://stunning-bubblegum-e2eb39.netlify.app/api",
   ],
   credentials: true,
 }));
